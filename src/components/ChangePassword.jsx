@@ -20,7 +20,7 @@ function ChangePassword() {
 
   const { showToast } = useToast();
   const navigate = useNavigate();
-
+  
   const roles = ['student', 'invigilator', 'admin'];
 
   const icons = {
