@@ -28,14 +28,13 @@ function App() {
   });
 
   const logout = () => {
-    setUser(null);
     sessionStorage.removeItem('authSession');
-    window.location.href = '/';
+    setUser(null);
   };
 
   const ProtectedRoute = ({ roleRequired, children }) => {
-    if (!user) return <Navigate to="/" replace />;
-    if (roleRequired && user.role !== roleRequired) return <Navigate to="/" replace />;
+    if (!user) return <Navigate to="/login" replace />;
+    if (roleRequired && user.role !== roleRequired) return <Navigate to="/login" replace />;
     return children;
   };
 
@@ -83,7 +82,7 @@ function App() {
         />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );

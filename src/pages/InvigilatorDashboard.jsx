@@ -514,7 +514,7 @@ const fetchUpcomingExams = async () => {
 
   const logout = () => {
     sessionStorage.removeItem('authSession');
-    window.location.href = '/';
+    window.location.href = '/login';
   };
 
   if (loading) {
