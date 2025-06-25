@@ -93,7 +93,7 @@ function Login({ onLogin }) {
           <img src={universityLogo} alt="Aditya University Logo" className="university-logo" />
         </div>
 
-        <div className="app-name">College Management System</div>
+        <div className="app-name">Exam Seating Management</div>
 
         <div className="role-buttons">
           {roles.map((r) => (

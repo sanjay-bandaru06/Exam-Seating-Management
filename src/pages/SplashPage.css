@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@500;700&display=swap');
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', serif;
+}
+
+.shimmer {
+  animation: shimmerEffect 2s linear infinite;
+  background-size: 200% auto;
+}
+
+@keyframes shimmerEffect {
+  0% { background-position: 0% 0%; }
+  100% { background-position: -200% 0%; }
+}

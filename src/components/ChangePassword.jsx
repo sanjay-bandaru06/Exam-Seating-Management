@@ -96,7 +96,7 @@ function ChangePassword() {
           <img src={universityLogo} alt="Aditya University Logo" className="university-logo" />
         </div>
 
-        <div className="app-name">Password Management</div>
+        <div className="app-name">Exam Seating Management</div>
 
         <div className="role-buttons">
           {roles.map((r) => (
