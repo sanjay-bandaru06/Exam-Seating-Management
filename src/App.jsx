@@ -28,8 +28,9 @@ function App() {
   });
 
   const logout = () => {
-    sessionStorage.removeItem('authSession');
     setUser(null);
+    sessionStorage.removeItem('authSession');
+    window.location.href = '/';
   };
 
   const ProtectedRoute = ({ roleRequired, children }) => {
