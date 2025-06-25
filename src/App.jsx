@@ -34,8 +34,8 @@ function App() {
   };
 
   const ProtectedRoute = ({ roleRequired, children }) => {
-    if (!user) return <Navigate to="/login" replace />;
-    if (roleRequired && user.role !== roleRequired) return <Navigate to="/login" replace />;
+    if (!user) return <Navigate to="/" replace />;
+    if (roleRequired && user.role !== roleRequired) return <Navigate to="/" replace />;
     return children;
   };
 
@@ -83,7 +83,7 @@ function App() {
         />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
