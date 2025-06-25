@@ -4,7 +4,8 @@ import axios from 'axios';
 import './Login.css';
 import universityLogo from '../assets/aditya-university.webp';
 import { FaUserGraduate, FaUserTie, FaUserCog, FaArrowLeft, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { useToast } from '../pages/ToastProvider'; // <-- Make sure this path matches your project
+import { useToast } from '../pages/ToastProvider';
+import { PropagateLoader } from 'react-spinners';
 
 function ChangePassword() {
   const [role, setRole] = useState('student');
@@ -15,6 +16,7 @@ function ChangePassword() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -45,6 +47,8 @@ function ChangePassword() {
       return;
     }
 
+    setLoading(true);
+
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/change-password`, {
         role,
@@ -64,6 +68,8 @@ function ChangePassword() {
         error.response?.data?.msg || 'Failed to change password. Please try again.',
         'error'
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,8 +107,8 @@ function ChangePassword() {
               onClick={() => {
                 setRole(r);
                 setUserId('');
-                // Removed setMessage call here
               }}
+              disabled={loading}
             >
               {r.charAt(0).toUpperCase() + r.slice(1)}
             </button>
@@ -121,6 +127,7 @@ function ChangePassword() {
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               required
+              disabled={loading}
             />
 
             <div className="password-input-container">
@@ -131,12 +138,14 @@ function ChangePassword() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="toggle-password button-tag"
                 onClick={() => togglePasswordVisibility('current')}
                 aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+                disabled={loading}
               >
                 {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -150,12 +159,14 @@ function ChangePassword() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="toggle-password button-tag"
                 onClick={() => togglePasswordVisibility('new')}
                 aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                disabled={loading}
               >
                 {showNewPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -169,23 +180,31 @@ function ChangePassword() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="toggle-password button-tag"
                 onClick={() => togglePasswordVisibility('confirm')}
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                disabled={loading}
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
 
-            <button type="submit" className="login-button button-tag">
-              Update Password
-            </button>
+            {loading ? (
+              <div className="loader-container">
+                <PropagateLoader color="#3498db" size={15} />
+              </div>
+            ) : (
+              <button type="submit" className="login-button button-tag">
+                Update Password
+              </button>
+            )}
           </form>
 
-          <button onClick={() => navigate('/')} className="back-link button-tag">
+          <button onClick={() => !loading && navigate('/')} className="back-link button-tag" disabled={loading}>
             <FaArrowLeft style={{ marginRight: '8px' }} />
             Back to Login
           </button>

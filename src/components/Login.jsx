@@ -5,7 +5,8 @@ import './Login.css';
 import universityLogo from '../assets/aditya-university.webp';
 
 import { FaUserGraduate, FaUserTie, FaUserCog, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { useToast } from '../pages/ToastProvider'; 
+import { useToast } from '../pages/ToastProvider';
+import { PropagateLoader } from 'react-spinners';
 
 function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ function Login({ onLogin }) {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!userId || !password) {
@@ -22,8 +24,9 @@ function Login({ onLogin }) {
       return;
     }
 
+    setLoading(true);
+
     try {
-      // console.log(import.meta.env.VITE_API_URL)
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         role,
         userId,
@@ -58,11 +61,11 @@ function Login({ onLogin }) {
         }
       } else {
         showToast(response.data.msg || 'Login failed', 'error');
-        console.log(response)
       }
     } catch (error) {
-      console.log(error)
       showToast(error.response?.data?.msg || 'Login failed. Please try again.', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,6 +106,7 @@ function Login({ onLogin }) {
                 setUserId('');
                 setPassword('');
               }}
+              disabled={loading}
             >
               {r.charAt(0).toUpperCase() + r.slice(1)}
             </button>
@@ -121,6 +125,7 @@ function Login({ onLogin }) {
                   placeholder="User ID"
                   value={role === r ? userId : ''}
                   onChange={(e) => role === r && setUserId(e.target.value)}
+                  disabled={loading}
                 />
                 <div className="password-input-container">
                   <input
@@ -129,25 +134,34 @@ function Login({ onLogin }) {
                     placeholder="Password"
                     value={role === r ? password : ''}
                     onChange={(e) => role === r && setPassword(e.target.value)}
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     className="toggle-password button-tag"
                     onClick={togglePasswordVisibility}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    disabled={loading}
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
-                <button className="login-button button-tag" onClick={handleLogin}>
-                  Sign In
-                </button>
+
+                {loading ? (
+                  <div className="loader-container">
+                    <PropagateLoader color="#3498db" size={15} />
+                  </div>
+                ) : (
+                  <button className="login-button button-tag" onClick={handleLogin}>
+                    Sign In
+                  </button>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        <p onClick={() => navigate('/change-password')} className="change-password-link">
+        <p onClick={() => !loading && navigate('/change-password')} className="change-password-link">
           Change Password
         </p>
       </div>

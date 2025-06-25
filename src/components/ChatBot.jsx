@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import roomdata from './Data/roomData.json'
+import roomData from './Data/roomData.json'
 import { Send, MapPin } from 'lucide-react';
 
 function ChatBot() {
