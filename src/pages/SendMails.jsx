@@ -27,7 +27,7 @@ const SendNotifications = () => {
       if (!date || !time) return;
       try {
         setLoadingType('fetching');
-        const res = await axios.post(`${process.env.Backend_url}/api/send-mails/counts`, {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/send-mails/counts`, {
           examDate: date,
           examTime: time,
         });
@@ -58,7 +58,7 @@ const SendNotifications = () => {
 
     try {
       setLoadingType(type);
-      const res = await axios.post(`${process.env.Backend_url}/api/send-mails/${type}`, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/send-mails/${type}`, {
         examDate,
         examTime,
       });

@@ -46,7 +46,7 @@ function ChangePassword() {
     }
 
     try {
-      const response = await axios.post(`${process.env.Backend_url}/api/auth/change-password`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/change-password`, {
         role,
         userId,
         currentPassword,

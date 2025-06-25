@@ -91,10 +91,10 @@ const StudentDashboard = ({ logout }) => {
 
       // Fetch all necessary data in parallel
       const [studentsRes, allocationsRes, examsRes, facultyAllocationsRes] = await Promise.all([
-        axios.get(`${process.env.Backend_url}/api/students`),
-        axios.get(`${process.env.Backend_url}/api/allocations`),
-        axios.get(`${process.env.Backend_url}/api/exam-schedules`),
-        axios.get(`${process.env.Backend_url}/api/faculty-allocations`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/students`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/allocations`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/exam-schedules`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/faculty-allocations`)
       ]);
 
       // Find the current student

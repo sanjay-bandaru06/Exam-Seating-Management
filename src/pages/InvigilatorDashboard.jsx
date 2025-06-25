@@ -120,7 +120,7 @@ const fetchInvigilatorData = async () => {
     
     console.log('Fetching data for:', { facultyId, selectedDate, selectedTime });
     
-    const response = await axios.get(`${process.env.Backend_url}/api/attendance/invigilator/${facultyId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/attendance/invigilator/${facultyId}`, {
       params: {
         date: selectedDate,
         time: selectedTime
@@ -147,7 +147,7 @@ const fetchInvigilatorData = async () => {
     // If 404, try to get debug information
     if (error.response?.status === 404) {
       try {
-        const debugResponse = await axios.get(`${process.env.Backend_url}/api/attendance/debug/${facultyId}`);
+        const debugResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/attendance/debug/${facultyId}`);
         setDebugInfo(debugResponse.data);
         console.log('Debug info:', debugResponse.data);
       } catch (debugError) {
@@ -165,8 +165,8 @@ const fetchInvigilatorData = async () => {
 const fetchUpcomingExams = async () => {
   try {
     const [allocationsRes, examsRes] = await Promise.all([
-      axios.get(`${process.env.Backend_url}/api/faculty-allocations`),
-      axios.get(`${process.env.Backend_url}/api/exam-schedules`)
+      axios.get(`${import.meta.env.VITE_API_URL}/api/faculty-allocations`),
+      axios.get(`${import.meta.env.VITE_API_URL}/api/exam-schedules`)
     ]);
     
     // Filter allocations for this faculty
@@ -199,8 +199,8 @@ const fetchUpcomingExams = async () => {
   const fetchFacultyStats = async () => {
     try {
       const [allocationsRes, attendanceRes] = await Promise.all([
-        axios.get(`${process.env.Backend_url}/api/faculty-allocations`),
-        axios.get(`${process.env.Backend_url}/api/attendance/report/${facultyId}`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/faculty-allocations`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/attendance/report/${facultyId}`)
       ]);
       
       const facultyAllocations = allocationsRes.data.filter(allocation => 
@@ -255,7 +255,7 @@ const fetchUpcomingExams = async () => {
     try {
       setSaving(true);
 
-      await axios.post(`${process.env.Backend_url}/api/attendance/mark-attendance`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/attendance/mark-attendance`, {
         studentId: studentId,
         examId: invigilatorData.examInfo._id,
         roomId: invigilatorData.roomInfo._id,
@@ -307,7 +307,7 @@ const fetchUpcomingExams = async () => {
     try {
       setSaving(true);
 
-      await axios.post(`${process.env.Backend_url}/api/attendance/report-malpractice`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/attendance/report-malpractice`, {
         studentId: malpracticeModal.student._id,
         examId: invigilatorData.examInfo._id,
         roomId: invigilatorData.roomInfo._id,

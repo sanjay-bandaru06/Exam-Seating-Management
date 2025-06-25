@@ -25,7 +25,7 @@ const ManageRooms = () => {
 
   const fetchRooms = async () => {
     try {
-      const response = await axios.get(`${process.env.Backend_url}/api/rooms`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/rooms`);
       const sortedRooms = response.data.sort((a, b) => {
         if (a.floor_no !== b.floor_no) return a.floor_no - b.floor_no;
         return a.room_no.localeCompare(b.room_no);
@@ -46,10 +46,10 @@ const ManageRooms = () => {
     };
     try {
       if (editingRoom) {
-        await axios.put(`${process.env.Backend_url}/api/rooms/${editingRoom._id}`, numericData);
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/rooms/${editingRoom._id}`, numericData);
         showToast('Room updated successfully!', 'success');
       } else {
-        await axios.post(`${process.env.Backend_url}/api/rooms`, numericData);
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/rooms`, numericData);
         showToast('Room added successfully!', 'success');
       }
       fetchRooms();
@@ -75,7 +75,7 @@ const ManageRooms = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this room?')) {
       try {
-        await axios.delete(`${process.env.Backend_url}/api/rooms/${id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/rooms/${id}`);
         showToast('Room deleted successfully!', 'success');
         fetchRooms();
       } catch (error) {
@@ -128,7 +128,7 @@ const ManageRooms = () => {
           }
         }
 
-        await axios.post(`${process.env.Backend_url}/api/rooms/bulk`, data);
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/rooms/bulk`, data);
         showToast('Rooms uploaded successfully!', 'success');
         fetchRooms();
       } catch (error) {

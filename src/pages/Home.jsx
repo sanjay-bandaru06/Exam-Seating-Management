@@ -29,9 +29,9 @@ const Home = () => {
   const fetchDashboardData = async () => {
     try {
       const [roomsRes, examsRes, studentsRes] = await Promise.all([
-        axios.get(`${process.env.Backend_url}/api/rooms`),
-        axios.get(`${process.env.Backend_url}/api/exam-schedules`),
-        axios.get(`${process.env.Backend_url}/api/students`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/rooms`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/exam-schedules`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/students`)
       ]);
 
       const exams = examsRes.data;

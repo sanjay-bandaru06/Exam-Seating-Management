@@ -55,9 +55,9 @@ const AllocateSeats = () => {
       console.log('Fetching all data...');
       
       const [studentsRes, roomsRes, examsRes] = await Promise.all([
-        axios.get(`${process.env.Backend_url}/api/students`),
-        axios.get(`${process.env.Backend_url}/api/rooms`),
-        axios.get(`${process.env.Backend_url}/api/exam-schedules`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/students`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/rooms`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/exam-schedules`)
       ]);
       
       console.log('Students fetched:', studentsRes.data.length);
@@ -80,7 +80,7 @@ const AllocateSeats = () => {
     
     try {
       console.log('Fetching allocations for exam:', selectedExam);
-      const response = await axios.get(`${process.env.Backend_url}/api/allocations?examId=${selectedExam}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/allocations?examId=${selectedExam}`);
       console.log('Allocations fetched:', response.data.length);
       setAllocations(response.data);
     } catch (error) {
@@ -102,7 +102,7 @@ const AllocateSeats = () => {
         time: selectedExamData.time
       });
 
-      const response = await axios.get(`${process.env.Backend_url}/api/room-availability`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/room-availability`, {
         params: {
           date: selectedExamData.date.split('T')[0],
           time: selectedExamData.time
@@ -128,7 +128,7 @@ const AllocateSeats = () => {
     setNotifyLoading(true);
 
     try {
-      const { data } = await axios.post(`${process.env.Backend_url}/api/notify-students`, {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/notify-students`, {
         examId: selectedExam
       });
 
@@ -243,7 +243,7 @@ const handleFileUpload = async (e) => {
 
       console.log('Processed data for upload:', processedData);
 
-      const response = await axios.post(`${process.env.Backend_url}/api/students/bulk`, processedData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/students/bulk`, processedData);
 
       await fetchData();
       setShowUploadModal(false);
@@ -342,7 +342,7 @@ const handleFileUpload = async (e) => {
 
     try {
       setAllocating(true);
-      const response = await axios.post(`${process.env.Backend_url}/api/allocate-seats`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/allocate-seats`, {
         examId: selectedExam,
         roomType: selectedRoomType
       });
@@ -383,7 +383,7 @@ const handleFileUpload = async (e) => {
 
     try {
       setLoading(true);
-      await axios.delete(`${process.env.Backend_url}/api/allocations/exam/${selectedExam}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/allocations/exam/${selectedExam}`);
       setAllocations([]);
       await checkRoomAvailabilityForExam();
       showToast('All allocations cleared successfully!', 'success');

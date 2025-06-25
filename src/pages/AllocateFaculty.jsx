@@ -67,9 +67,9 @@ const AllocateFaculty = () => {
     try {
       setLoading(true);
       const [allocationsRes, examsRes, roomsRes] = await Promise.all([
-        axios.get(`${process.env.Backend_url}/api/faculty-allocations`),
-        axios.get(`${process.env.Backend_url}/api/exam-schedules`),
-        axios.get(`${process.env.Backend_url}/api/rooms`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/faculty-allocations`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/exam-schedules`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/rooms`)
       ]);
       
       setFacultyAllocations(allocationsRes.data);
@@ -102,7 +102,7 @@ const AllocateFaculty = () => {
 
       const examIds = selectedExams.map(exam => exam._id);
       const seatAllocationsPromises = examIds.map(examId => 
-        axios.get(`${process.env.Backend_url}/api/allocations?examId=${examId}`)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/allocations?examId=${examId}`)
       );
       
       const seatAllocationsResults = await Promise.all(seatAllocationsPromises);
@@ -213,7 +213,7 @@ const AllocateFaculty = () => {
     }
 
     const examIds = selectedExams.map(exam => exam._id);
-    await axios.post(`${process.env.Backend_url}/api/faculty-allocations/clear`, { examIds });
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/faculty-allocations/clear`, { examIds });
 
     const allocationsToCreate = [];
     const usedFacultyIds = new Set();
@@ -300,7 +300,7 @@ const AllocateFaculty = () => {
       return;
     }
 
-    const response = await axios.post(`${process.env.Backend_url}/api/faculty-allocations/bulk`, allocationsToCreate);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/faculty-allocations/bulk`, allocationsToCreate);
     const { successCount, errorCount, errors } = response.data;
 
     if (errorCount > 0) {
@@ -357,10 +357,10 @@ const AllocateFaculty = () => {
       };
 
       if (editingAllocation) {
-        await axios.put(`${process.env.Backend_url}/api/faculty-allocations/${editingAllocation._id}`, allocationData);
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/faculty-allocations/${editingAllocation._id}`, allocationData);
         toast.success('Faculty allocation updated successfully!');
       } else {
-        await axios.post(`${process.env.Backend_url}/api/faculty-allocations`, allocationData);
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/faculty-allocations`, allocationData);
         toast.success('Faculty allocation created successfully!');
       }
       
@@ -392,7 +392,7 @@ const AllocateFaculty = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this faculty allocation?')) {
       try {
-        await axios.delete(`${process.env.Backend_url}/api/faculty-allocations/${id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/faculty-allocations/${id}`);
         await fetchInitialData();
         toast.success('Faculty allocation deleted successfully!');
       } catch (error) {
@@ -425,7 +425,7 @@ const AllocateFaculty = () => {
       }
 
       for (const exam of selectedExams) {
-        await axios.post(`${process.env.Backend_url}/api/faculty-allocations/notify`, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/faculty-allocations/notify`, {
           examId: exam._id
         });
         toast.success(`Notification sent for exam: ${exam.subject || exam._id}`);

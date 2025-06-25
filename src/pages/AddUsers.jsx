@@ -33,7 +33,7 @@ const AddUser = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(`${process.env.Backend_url}/api/auth/add`, formData);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/add`, formData);
       showToast('User added successfully!', 'success');
       setFormData({ userId: '', name: '', password: '', role: 'student' });
     } catch (err) {
@@ -76,7 +76,7 @@ const AddUser = () => {
         return;
       }
 
-      const res = await axios.post(`${process.env.Backend_url}/api/auth/add-multiple`, { users });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/add-multiple`, { users });
 
       const { results } = res.data;
       const skipped = results.filter(r => r.status === 'Skipped');
@@ -113,8 +113,8 @@ const AddUser = () => {
     try {
       const url =
         exportRole === 'all'
-          ? `${process.env.Backend_url}/api/auth/export-users`
-          : `${process.env.Backend_url}/api/auth/export-users?role=${exportRole}`;
+          ? `${import.meta.env.VITE_API_URL}/api/auth/export-users`
+          : `${import.meta.env.VITE_API_URL}/api/auth/export-users?role=${exportRole}`;
 
       const res = await axios.get(url);
       if (!res.data.users || res.data.users.length === 0) {

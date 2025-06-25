@@ -54,7 +54,7 @@ const ExamSchedules = () => {
 
   const fetchExams = async () => {
     try {
-      const response = await axios.get(`${process.env.Backend_url}/api/exam-schedules`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/exam-schedules`);
       setExams(response.data);
     } catch (error) {
       console.error('Error fetching exams:', error);
@@ -115,10 +115,10 @@ const handleSubmit = async (e) => {
     };
 
     if (editingExam) {
-      await axios.put(`${process.env.Backend_url}/api/exam-schedules/${editingExam._id}`, dataToSubmit);
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/exam-schedules/${editingExam._id}`, dataToSubmit);
       showToast('Exam schedule updated successfully', 'success');
     } else {
-      await axios.post(`${process.env.Backend_url}/api/exam-schedules`, dataToSubmit);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/exam-schedules`, dataToSubmit);
       showToast('Exam schedule added successfully', 'success');
     }
     fetchExams();
@@ -146,7 +146,7 @@ const handleEdit = (exam) => {
 const handleDelete = async (id) => {
   if (window.confirm('Are you sure you want to delete this exam?')) {
     try {
-      await axios.delete(`${process.env.Backend_url}/api/exam-schedules/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/exam-schedules/${id}`);
       showToast('Exam schedule deleted', 'success');
       fetchExams();
     } catch (error) {
@@ -225,7 +225,7 @@ const handleFileUpload = async (e) => {
         };
       }).filter(item => item.date !== null); // Filter out invalid dates
 
-      await axios.post(`${process.env.Backend_url}/api/exam-schedules/bulk`, data);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/exam-schedules/bulk`, data);
       fetchExams();
       showToast(`Uploaded ${data.length} exam schedules successfully!`, 'success');
     } catch (error) {

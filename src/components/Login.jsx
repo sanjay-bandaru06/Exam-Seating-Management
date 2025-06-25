@@ -23,7 +23,8 @@ function Login({ onLogin }) {
     }
 
     try {
-      const response = await axios.post(`${process.env.Backend_url}/api/auth/login`, {
+      // console.log(import.meta.env.VITE_API_URL)
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         role,
         userId,
         password,
@@ -57,8 +58,10 @@ function Login({ onLogin }) {
         }
       } else {
         showToast(response.data.msg || 'Login failed', 'error');
+        console.log(response)
       }
     } catch (error) {
+      console.log(error)
       showToast(error.response?.data?.msg || 'Login failed. Please try again.', 'error');
     }
   };
