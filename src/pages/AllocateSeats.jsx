@@ -163,10 +163,8 @@ const handleFileUpload = async (e) => {
       const data = XLSX.utils.sheet_to_json(worksheet);
       
       const processedData = data.map((row, index) => {
-        // Parse exam date - handle multiple formats
         let examDate = '';
         if (row.examDate) {
-          // Case 1: Excel date number (serial number)
           if (typeof row.examDate === 'number') {
             try {
               const excelDate = XLSX.SSF.parse_date_code(row.examDate);
@@ -175,15 +173,12 @@ const handleFileUpload = async (e) => {
               console.warn(`Failed to parse Excel date at row ${index+1}`, excelError);
             }
           }
-          // Case 2: ISO format string (YYYY-MM-DD)
           else if (/^\d{4}-\d{2}-\d{2}$/.test(row.examDate.toString().trim())) {
-            examDate = `${row.examDate.toString().trim()}T00:00:00Z`; // Explicit UTC
+            examDate = `${row.examDate.toString().trim()}T00:00:00Z`; 
           }
-          // Case 3: Other string formats
           else {
             const dateStr = row.examDate.toString().trim();
-            
-            // Try common date formats (UTC)
+
             const formats = [
               'yyyy-MM-dd', 'MM/dd/yyyy', 'dd-MM-yyyy',
               'yyyy/MM/dd', 'MM-dd-yyyy', 'dd/MM/yyyy'
@@ -204,8 +199,7 @@ const handleFileUpload = async (e) => {
                 continue;
               }
             }
-            
-            // Fallback to native parsing if above failed
+
             if (!examDate) {
               const parsedDate = new Date(dateStr);
               if (!isNaN(parsedDate.getTime())) {
@@ -219,21 +213,19 @@ const handleFileUpload = async (e) => {
           }
         }
 
-        // Process all other fields
         const processedRow = {
           name: row.name || row.Name || row.student_name || row['Student Name'] || '',
           regNo: (row.regNo || row.RegNo || row.reg_no || row['Register Number'] || row.registerNumber || '').toString().trim(),
           department: (row.department || row.Department || row.dept || row.Dept || '').toString().trim().toUpperCase(),
           semester: (row.semester || row.Semester || row.sem || row.Sem || '').toString().trim(),
           email: row.email || row.Email || row.emailId || row['Email ID'] || '',
-          examDate: examDate, // Use the parsed ISO string (UTC)
+          examDate: examDate,
           subject: row.subject || row.Subject || row.subjectName || row['Subject Name'] || '',
           subjectCode: row.subjectCode || row.SubjectCode || row.subject_code || row['Subject Code'] || '',
           type: (row.type || row.Type || row.examType || row['Exam Type'] || 'regular').toString().toLowerCase(),
           isActive: true
         };
-        
-        // Validate required fields
+
         if (!processedRow.name || !processedRow.regNo || !processedRow.department || !processedRow.semester) {
           console.warn(`Row ${index + 1} missing required fields:`, processedRow);
         }
@@ -256,7 +248,7 @@ const handleFileUpload = async (e) => {
       showToast(`Error uploading student data: ${error.response?.data?.message || error.message}`, 'error');
     } finally {
       setUploading(false);
-      e.target.value = ''; // Reset file input
+      e.target.value = '';
     }
   };
   
@@ -349,9 +341,9 @@ const handleFileUpload = async (e) => {
       
       setAllocations(response.data);
       await Promise.all([
-      fetchData(), // Refresh students, rooms, and exams
-      fetchAllocationsForExam(), // Refresh allocations for this exam
-      checkRoomAvailabilityForExam() // Refresh room availability
+      fetchData(),
+      fetchAllocationsForExam(),
+      checkRoomAvailabilityForExam()
     ]);
 
     console.log('Allocation response:', response.data);
@@ -490,19 +482,17 @@ const handleFileUpload = async (e) => {
   const parseDate = (dateString) => {
   if (!dateString) return null;
   
-  // Try different date formats
   const formats = [
-    'yyyy-MM-dd',    // ISO (2025-06-23)
-    'dd-MM-yyyy',    // European (23-06-2025)
-    'MM/dd/yyyy',    // US (06/23/2025)
-    'yyyy/MM/dd',    // Alternative (2025/06/23)
-    'dd MMM yyyy',   // 23 Jun 2025
-    'MMM dd, yyyy',  // Jun 23, 2025
-    'dd-MM-yy',      // 23-06-25
-    'MM/dd/yy'       // 06/23/25
+    'yyyy-MM-dd',
+    'dd-MM-yyyy',
+    'MM/dd/yyyy',
+    'yyyy/MM/dd',
+    'dd MMM yyyy',
+    'MMM dd, yyyy',
+    'dd-MM-yy',  
+    'MM/dd/yy' 
   ];
-  
-  // Try parsing with each format
+
   for (const format of formats) {
     try {
       const parsed = parse(dateString.toString(), format, new Date());
@@ -511,8 +501,7 @@ const handleFileUpload = async (e) => {
       continue;
     }
   }
-  
-  // Fallback to native Date parsing
+
   const date = new Date(dateString);
   return !isNaN(date.getTime()) ? date : null;
 };
@@ -527,8 +516,7 @@ const formatDateForComparison = (date) => {
   
 const eligibleStudents = students.filter(student => {
   if (!selectedExamData) return false;
-  
-  // Department and semester matching
+
   const studentDept = (student.department || '').toString().trim().toUpperCase();
   const studentSem = (student.semester || '').toString().trim();
   const examDept = (selectedExamData.department || '').toString().trim().toUpperCase();
@@ -536,7 +524,6 @@ const eligibleStudents = students.filter(student => {
   
   if (studentDept !== examDept || studentSem !== examSem) return false;
   
-  // Subject matching
   const studentSubject = (student.subject || '').toString().trim().toLowerCase();
   const studentSubjectCode = (student.subjectCode || '').toString().trim().toUpperCase();
   const examSubject = (selectedExamData.subject || '').toString().trim().toLowerCase();
@@ -550,8 +537,7 @@ const eligibleStudents = students.filter(student => {
   } else {
     subjectMatch = true;
   }
-  
-  // Date matching with flexible parsing
+
   const studentExamDate = formatDateForComparison(student.examDate);
   const examDate = formatDateForComparison(selectedExamData.date);
   

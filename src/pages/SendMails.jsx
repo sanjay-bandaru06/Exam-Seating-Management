@@ -73,7 +73,6 @@ const SendNotifications = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-start justify-center py-8 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg p-6 sm:p-8 space-y-8">
-        {/* Header Section */}
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="p-4 bg-indigo-100 rounded-full">
             <BellRing className="text-indigo-600 w-8 h-8 sm:w-10 sm:h-10" />
@@ -84,7 +83,6 @@ const SendNotifications = () => {
           </p>
         </div>
 
-        {/* Date/Time Selection */}
         <div className="bg-gray-50 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Select Exam Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -124,7 +122,6 @@ const SendNotifications = () => {
           </div>
         </div>
 
-        {/* Stats Overview */}
         {examDate && examTime && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center">
@@ -148,7 +145,6 @@ const SendNotifications = () => {
           </div>
         )}
 
-        {/* Student Lists */}
         {(absenteeList.length > 0 || malpracticeList.length > 0) ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {absenteeList.length > 0 && (
@@ -224,7 +220,6 @@ const SendNotifications = () => {
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button
             onClick={() => counts.absentees === 0 ? 

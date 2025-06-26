@@ -118,7 +118,6 @@ const ManageRooms = () => {
           return;
         }
 
-        // Validation
         for (const row of data) {
           if (!row.room_no || !row.floor_no || !row.block || !row.capacity || !row.room_type) {
             showToast('Invalid row in Excel. Missing fields.', 'error');
@@ -175,7 +174,6 @@ const ManageRooms = () => {
 
   return (
     <div className="p-8 min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Manage Rooms</h1>
@@ -206,7 +204,6 @@ const ManageRooms = () => {
         </div>
       </div>
 
-      {/* Upload Section */}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Upload Rooms from Excel</h2>
         <div className="flex items-center space-x-4">
@@ -231,7 +228,6 @@ const ManageRooms = () => {
         </div>
       </div>
 
-      {/* Rooms Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {rooms.map((room) => (
           <div key={room._id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -283,7 +279,6 @@ const ManageRooms = () => {
         )}
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md">

@@ -151,7 +151,6 @@ const AddUser = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8">
           <div className="mb-4 md:mb-0">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -191,7 +190,6 @@ const AddUser = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Main Form Section */}
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center space-x-3 mb-4 sm:mb-6">
               <div className="p-2 bg-blue-100 rounded-lg">
