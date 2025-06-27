@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Info
 } from 'lucide-react';
+import { parse } from 'date-fns';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -154,60 +155,61 @@ const handleFileUpload = async (e) => {
 
   setUploading(true);
   const reader = new FileReader();
-  
+
+  // Force date to 00:00:00 UTC
+  const forceDateToUTC = (dateObj) => {
+    const y = dateObj.getUTCFullYear();
+    const m = dateObj.getUTCMonth();
+    const d = dateObj.getUTCDate();
+    return new Date(Date.UTC(y, m, d)).toISOString(); // Always T00:00:00.000Z
+  };
+
   reader.onload = async (event) => {
     try {
       const workbook = XLSX.read(event.target.result, { type: 'binary' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
-      
+
       const processedData = data.map((row, index) => {
         let examDate = '';
         if (row.examDate) {
           if (typeof row.examDate === 'number') {
+            // Excel serial number
             try {
-              const excelDate = XLSX.SSF.parse_date_code(row.examDate);
-              examDate = new Date(Date.UTC(excelDate.y, excelDate.m-1, excelDate.d)).toISOString();
-            } catch (excelError) {
-              console.warn(`Failed to parse Excel date at row ${index+1}`, excelError);
+              const parsed = XLSX.SSF.parse_date_code(row.examDate);
+              const dateObj = new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
+              examDate = forceDateToUTC(dateObj);
+            } catch (error) {
+              console.warn(`Failed to parse Excel date at row ${index + 1}`, error);
             }
-          }
-          else if (/^\d{4}-\d{2}-\d{2}$/.test(row.examDate.toString().trim())) {
-            examDate = `${row.examDate.toString().trim()}T00:00:00Z`; 
-          }
-          else {
+          } else if (/^\d{4}-\d{2}-\d{2}$/.test(row.examDate.toString().trim())) {
+            const [y, m, d] = row.examDate.split('-').map(Number);
+            const dateObj = new Date(Date.UTC(y, m - 1, d));
+            examDate = forceDateToUTC(dateObj);
+          } else {
             const dateStr = row.examDate.toString().trim();
-
             const formats = [
               'yyyy-MM-dd', 'MM/dd/yyyy', 'dd-MM-yyyy',
               'yyyy/MM/dd', 'MM-dd-yyyy', 'dd/MM/yyyy'
             ];
-            
+
             for (const format of formats) {
               try {
                 const parsedDate = parse(dateStr, format, new Date());
                 if (!isNaN(parsedDate.getTime())) {
-                  examDate = new Date(Date.UTC(
-                    parsedDate.getFullYear(),
-                    parsedDate.getMonth(),
-                    parsedDate.getDate()
-                  )).toISOString();
+                  examDate = forceDateToUTC(parsedDate);
                   break;
                 }
-              } catch (e) {
+              } catch {
                 continue;
               }
             }
 
             if (!examDate) {
-              const parsedDate = new Date(dateStr);
-              if (!isNaN(parsedDate.getTime())) {
-                examDate = new Date(Date.UTC(
-                  parsedDate.getFullYear(),
-                  parsedDate.getMonth(),
-                  parsedDate.getDate()
-                )).toISOString();
+              const fallbackDate = new Date(dateStr);
+              if (!isNaN(fallbackDate.getTime())) {
+                examDate = forceDateToUTC(fallbackDate);
               }
             }
           }
@@ -219,7 +221,7 @@ const handleFileUpload = async (e) => {
           department: (row.department || row.Department || row.dept || row.Dept || '').toString().trim().toUpperCase(),
           semester: (row.semester || row.Semester || row.sem || row.Sem || '').toString().trim(),
           email: row.email || row.Email || row.emailId || row['Email ID'] || '',
-          examDate: examDate,
+          examDate,
           subject: row.subject || row.Subject || row.subjectName || row['Subject Name'] || '',
           subjectCode: row.subjectCode || row.SubjectCode || row.subject_code || row['Subject Code'] || '',
           type: (row.type || row.Type || row.examType || row['Exam Type'] || 'regular').toString().toLowerCase(),
@@ -229,7 +231,7 @@ const handleFileUpload = async (e) => {
         if (!processedRow.name || !processedRow.regNo || !processedRow.department || !processedRow.semester) {
           console.warn(`Row ${index + 1} missing required fields:`, processedRow);
         }
-        
+
         return processedRow;
       }).filter(row => row.name && row.regNo && row.department && row.semester);
 
@@ -239,10 +241,9 @@ const handleFileUpload = async (e) => {
 
       await fetchData();
       setShowUploadModal(false);
-      
+
       const successCount = response.data.students?.length || response.data.created?.length || processedData.length;
       showToast(`Successfully uploaded ${successCount} students!`, 'success');
-      
     } catch (error) {
       console.error('Error uploading students:', error);
       showToast(`Error uploading student data: ${error.response?.data?.message || error.message}`, 'error');
@@ -251,9 +252,11 @@ const handleFileUpload = async (e) => {
       e.target.value = '';
     }
   };
-  
+
   reader.readAsBinaryString(file);
 };
+
+
 
   const allocateSeats = async () => {
     if (!selectedExam) {

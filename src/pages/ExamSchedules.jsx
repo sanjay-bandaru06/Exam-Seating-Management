@@ -213,13 +213,24 @@ const handleFileUpload = async (e) => {
       let data = XLSX.utils.sheet_to_json(worksheet);
 
       // Process dates in the uploaded data
-      data = data.map(item => {
-        const parsedDate = parseDate(item.date);
-        return {
-          ...item,
-          date: parsedDate ? parsedDate.toISOString() : null
-        };
-      }).filter(item => item.date !== null); // Filter out invalid dates
+     data = data.map(item => {
+  const parsedDate = parseDate(item.date);
+  if (parsedDate) {
+    // Construct date-only in UTC by setting time to 00:00:00.000 UTC
+    const utcMidnight = new Date(Date.UTC(
+      parsedDate.getFullYear(),
+      parsedDate.getMonth(),
+      parsedDate.getDate()
+    ));
+
+    return {
+      ...item,
+      date: utcMidnight.toISOString()
+    };
+  }
+  return null;
+}).filter(item => item !== null);
+
 
       await axios.post(`${import.meta.env.VITE_API_URL}/api/exam-schedules/bulk`, data);
       fetchExams();
