@@ -36,13 +36,25 @@ const Home = () => {
 
       const exams = examsRes.data;
       const today = new Date();
-      
-      const upcoming = exams.filter(exam => new Date(exam.date) > today);
-      const ongoing = exams.filter(exam => {
-        const examDate = new Date(exam.date);
-        return examDate.toDateString() === today.toDateString();
-      });
-      const completed = exams.filter(exam => new Date(exam.date) < today);
+const todayMidnight = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+const tomorrowMidnight = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 1));
+
+const upcoming = exams.filter(exam => {
+  const examDate = new Date(exam.date);
+  return examDate >= tomorrowMidnight; // Only future exams
+});
+
+const ongoing = exams.filter(exam => {
+  const examDate = new Date(exam.date);
+  return examDate.toDateString() === today.toDateString(); // Only today’s exams
+});
+
+const completed = exams.filter(exam => {
+  const examDate = new Date(exam.date);
+  return examDate < todayMidnight; // Only exams before today
+});
+
+
 
       setStats({
         totalRooms: roomsRes.data.length,

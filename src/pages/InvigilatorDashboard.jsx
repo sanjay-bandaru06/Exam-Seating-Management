@@ -60,6 +60,10 @@ const {showToast} = useToast();
     }
   }, [facultyId, selectedDate, selectedTime]);
 
+  useEffect(() => {
+    fetchFacultyStats();
+  }, [attendanceChanges]);
+
 
 const parseDate = (dateString) => {
   if (!dateString) return null;
@@ -168,10 +172,19 @@ const fetchUpcomingExams = async () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); 
     
+    // Get current exam date/time for filtering
+    const currentDate = new Date(selectedDate);
+    const currentTime = selectedTime;
+    
     const upcoming = facultyAllocations
       .filter(allocation => {
         const examDate = parseDate(allocation.exam.date);
-        return examDate && examDate >= today;
+        // Exclude exams matching current date/time
+        const isCurrentExam = 
+          isSameDate(examDate, currentDate) && 
+          allocation.exam.time === currentTime;
+          
+        return examDate && examDate >= today && !isCurrentExam;
       })
       .sort((a, b) => {
         const dateA = parseDate(a.exam.date);
@@ -229,7 +242,9 @@ const fetchUpcomingExams = async () => {
     } catch (error) {
       console.error('Error fetching faculty stats:', error);
     }
-  };
+  }; 
+
+  
 
   const handleAttendanceChange = (studentId, status) => {
     setAttendanceChanges(prev => ({
@@ -285,57 +300,66 @@ const fetchUpcomingExams = async () => {
     }
   };
 
-  const handleMalpracticeReport = async () => {
-    if (!malpracticeModal.student || !malpracticeDescription.trim()) {
-      showToast('Please provide a description for the malpractice report','warning');
-      return;
-    }
-    
-    try {
-      setSaving(true);
+const handleMalpracticeReport = async () => {
+  if (!malpracticeModal.student || !malpracticeDescription.trim()) {
+    showToast('Please provide a description for the malpractice report', 'warning');
+    return;
+  }
+  
+  // Check if student is marked absent
+  const studentId = malpracticeModal.student._id;
+  const studentData = invigilatorData.students.find(s => s.student._id === studentId);
+  
+  if (studentData?.attendance?.status === 'absent') {
+    showToast('Cannot report malpractice for absent students', 'error');
+    return;
+  }
 
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/attendance/report-malpractice`, {
-        studentId: malpracticeModal.student._id,
-        examId: invigilatorData.examInfo._id,
-        roomId: invigilatorData.roomInfo._id,
-        description: malpracticeDescription,
-        facultyId: facultyId,
-        facultyName: facultyName
-      });
+  try {
+    setSaving(true);
 
-      setInvigilatorData(prev => ({
-        ...prev,
-        students: prev.students.map(student => 
-          student.student._id === malpracticeModal.student._id 
-            ? { 
-                ...student, 
-                attendance: { 
-                  ...student.attendance, 
-                  malpractice: { 
-                    reported: true, 
-                    description: malpracticeDescription 
-                  } 
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/attendance/report-malpractice`, {
+      studentId: malpracticeModal.student._id,
+      examId: invigilatorData.examInfo._id,
+      roomId: invigilatorData.roomInfo._id,
+      description: malpracticeDescription,
+      facultyId: facultyId,
+      facultyName: facultyName
+    });
+
+    setInvigilatorData(prev => ({
+      ...prev,
+      students: prev.students.map(student => 
+        student.student._id === malpracticeModal.student._id 
+          ? { 
+              ...student, 
+              attendance: { 
+                ...student.attendance, 
+                malpractice: { 
+                  reported: true, 
+                  description: malpracticeDescription 
                 } 
-              }
-            : student
-        ),
-        summary: {
-          ...prev.summary,
-          malpracticeCount: prev.summary.malpracticeCount + 1
-        }
-      }));
-      
-      setMalpracticeModal({ show: false, student: null });
-      setMalpracticeDescription('');
-      showToast('Malpractice reported successfully','success');
-      
-    } catch (error) {
-      console.error('Error reporting malpractice:', error);
-      showToast('Error reporting malpractice: ' + (error.response?.data?.message || error.message),'error');
-    } finally {
-      setSaving(false);
-    }
-  };
+              } 
+            }
+          : student
+      ),
+      summary: {
+        ...prev.summary,
+        malpracticeCount: prev.summary.malpracticeCount + 1
+      }
+    }));
+    
+    setMalpracticeModal({ show: false, student: null });
+    setMalpracticeDescription('');
+    showToast('Malpractice reported successfully', 'success');
+    
+  } catch (error) {
+    console.error('Error reporting malpractice:', error);
+    showToast('Error reporting malpractice: ' + (error.response?.data?.message || error.message), 'error');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const downloadAttendanceReport = () => {
     if (!invigilatorData || !invigilatorData.students.length) {
@@ -462,12 +486,21 @@ const fetchUpcomingExams = async () => {
                     
                     <button
                       onClick={() => setMalpracticeModal({ show: true, student })}
+                      disabled={currentStatus === 'absent'}
                       className={`p-1.5 rounded-full transition-all duration-200 ${
                         hasMalpractice 
                           ? 'bg-red-500 text-white shadow-lg' 
+                          : currentStatus === 'absent'
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-gray-200 text-gray-600 hover:bg-orange-200 hover:shadow-md'
                       }`}
-                      title={hasMalpractice ? 'Malpractice Reported' : 'Report Malpractice'}
+                      title={
+                        currentStatus === 'absent' 
+                          ? 'Cannot report malpractice for absent students' 
+                          : hasMalpractice 
+                            ? 'Malpractice Reported' 
+                            : 'Report Malpractice'
+                      }
                     >
                       <AlertTriangle className="h-3 w-3" />
                     </button>
