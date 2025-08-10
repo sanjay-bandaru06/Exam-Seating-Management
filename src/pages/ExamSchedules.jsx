@@ -105,7 +105,6 @@ const ExamSchedules = () => {
 const handleSubmit = async (e) => {
   e.preventDefault();
   try {
-    // Parse date and adjust for timezone
     const parsedDate = new Date(formData.date);
     const adjustedDate = new Date(parsedDate.getTime() - parsedDate.getTimezoneOffset() * 60000);
 
@@ -170,20 +169,18 @@ const resetForm = () => {
   setShowModal(false);
 };
 
-// Add this utility function at the top of your component file
 const parseDate = (dateString) => {
   if (!dateString) return null;
-  
-  // Try different date formats
+
   const formats = [
-    'yyyy-MM-dd',    // 2025-06-23
-    'dd-MM-yyyy',    // 23-06-2025
-    'dd-MM-yy',      // 23-06-25
-    'MM/dd/yyyy',    // 06/23/2025
-    'MM/dd/yy',      // 06/23/25
-    'yyyy/MM/dd',    // 2025/06/23
-    'dd MMM yyyy',   // 23 Jun 2025
-    'MMM dd, yyyy'   // Jun 23, 2025
+    'yyyy-MM-dd',
+    'dd-MM-yyyy',
+    'dd-MM-yy', 
+    'MM/dd/yyyy', 
+    'MM/dd/yy', 
+    'yyyy/MM/dd', 
+    'dd MMM yyyy',
+    'MMM dd, yyyy' 
   ];
   
   for (const format of formats) {
@@ -192,8 +189,7 @@ const parseDate = (dateString) => {
       return new Date(parsed.y, parsed.m - 1, parsed.d);
     }
   }
-  
-  // Fallback to native Date parsing
+
   const date = new Date(dateString);
   if (!isNaN(date.getTime())) {
     return date;
@@ -217,13 +213,24 @@ const handleFileUpload = async (e) => {
       let data = XLSX.utils.sheet_to_json(worksheet);
 
       // Process dates in the uploaded data
-      data = data.map(item => {
-        const parsedDate = parseDate(item.date);
-        return {
-          ...item,
-          date: parsedDate ? parsedDate.toISOString() : null
-        };
-      }).filter(item => item.date !== null); // Filter out invalid dates
+     data = data.map(item => {
+  const parsedDate = parseDate(item.date);
+  if (parsedDate) {
+    // Construct date-only in UTC by setting time to 00:00:00.000 UTC
+    const utcMidnight = new Date(Date.UTC(
+      parsedDate.getFullYear(),
+      parsedDate.getMonth(),
+      parsedDate.getDate()
+    ));
+
+    return {
+      ...item,
+      date: utcMidnight.toISOString()
+    };
+  }
+  return null;
+}).filter(item => item !== null);
+
 
       await axios.post(`${import.meta.env.VITE_API_URL}/api/exam-schedules/bulk`, data);
       fetchExams();

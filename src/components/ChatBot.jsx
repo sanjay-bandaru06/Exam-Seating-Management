@@ -11,20 +11,17 @@ function ChatBot() {
 
   const findBhavan = (searchTerm) => {
     const lowerSearch = searchTerm.toLowerCase();
-    
-    // First try exact match
+
     const exactMatch = roomData.find(b => 
       b.bhavan.toLowerCase() === lowerSearch
     );
     if (exactMatch) return exactMatch;
 
-    // Then try contains match
     const containsMatch = roomData.find(b => 
       b.bhavan.toLowerCase().includes(lowerSearch)
     );
     if (containsMatch) return containsMatch;
 
-    // Then try fuzzy match (first letters)
     const fuzzyMatch = roomData.find(b => 
       b.bhavan.toLowerCase().split(' ').some(word => 
         word.startsWith(lowerSearch)
@@ -50,14 +47,13 @@ function ChatBot() {
           : `Sorry, I couldn't find "${input}".\n\nAvailable Bhavans: ${roomData.map(b => b.bhavan).join(', ')}`
       };
       setChat(prev => [...prev, botMsg]);
-    }, 500); // Small delay for better UX
+    }, 500);
 
     setInput('');
   };
 
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Chat Messages */}
       <div className="flex-1 p-4 overflow-y-auto bg-gradient-to-br from-indigo-50/50 to-purple-50/50 space-y-3">
         {chat.map((msg, index) => (
           <div
@@ -81,7 +77,6 @@ function ChatBot() {
         ))}
       </div>
 
-      {/* Input Area */}
       <div className="border-t border-gray-200 bg-white p-4">
         <div className="flex items-center space-x-2">
           <input

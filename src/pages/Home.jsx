@@ -36,13 +36,25 @@ const Home = () => {
 
       const exams = examsRes.data;
       const today = new Date();
-      
-      const upcoming = exams.filter(exam => new Date(exam.date) > today);
-      const ongoing = exams.filter(exam => {
-        const examDate = new Date(exam.date);
-        return examDate.toDateString() === today.toDateString();
-      });
-      const completed = exams.filter(exam => new Date(exam.date) < today);
+const todayMidnight = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+const tomorrowMidnight = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 1));
+
+const upcoming = exams.filter(exam => {
+  const examDate = new Date(exam.date);
+  return examDate >= tomorrowMidnight; // Only future exams
+});
+
+const ongoing = exams.filter(exam => {
+  const examDate = new Date(exam.date);
+  return examDate.toDateString() === today.toDateString(); // Only today’s exams
+});
+
+const completed = exams.filter(exam => {
+  const examDate = new Date(exam.date);
+  return examDate < todayMidnight; // Only exams before today
+});
+
+
 
       setStats({
         totalRooms: roomsRes.data.length,
@@ -75,13 +87,11 @@ const Home = () => {
 
   return (
     <div className="p-8 min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">Dashboard</h1>
         <p className="text-gray-600">Welcome to ExamSeat Pro Management System</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Rooms"
@@ -113,7 +123,6 @@ const Home = () => {
         />
       </div>
 
-      {/* Exam Status Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-r from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
@@ -146,7 +155,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Recent Exams */}
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Exam Schedules</h2>
         {recentExams.length > 0 ? (

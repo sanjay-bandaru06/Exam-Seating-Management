@@ -46,7 +46,6 @@ const InvigilatorDashboard = () => {
   const [facultyStats, setFacultyStats] = useState({});
   const [recentActivity, setRecentActivity] = useState([]);
 const {showToast} = useToast();
-  // Get auth session from sessionStorage
   const authSession = JSON.parse(sessionStorage.getItem('authSession') || '{}');
   const { userId: facultyId, name: facultyName } = authSession;
 
@@ -61,32 +60,32 @@ const {showToast} = useToast();
     }
   }, [facultyId, selectedDate, selectedTime]);
 
-  // Add these utility functions at the top of your component
+  useEffect(() => {
+    fetchFacultyStats();
+  }, [attendanceChanges]);
+
+
 const parseDate = (dateString) => {
   if (!dateString) return null;
-  
-  // If it's already a Date object
+
   if (dateString instanceof Date) {
     return !isNaN(dateString.getTime()) ? dateString : null;
   }
-  
-  // If it's an ISO string
+
   if (typeof dateString === 'string' && dateString.includes('T')) {
     const date = new Date(dateString);
     return !isNaN(date.getTime()) ? date : null;
   }
-  
-  // Try different date formats
+
   const formats = [
-    'yyyy-MM-dd',    // ISO (2025-06-23)
-    'dd-MM-yyyy',    // European (23-06-2025)
-    'MM/dd/yyyy',    // US (06/23/2025)
-    'yyyy/MM/dd',    // Alternative (2025/06/23)
-    'dd MMM yyyy',   // 23 Jun 2025
-    'MMM dd, yyyy',  // Jun 23, 2025
+    'yyyy-MM-dd', 
+    'dd-MM-yyyy',
+    'MM/dd/yyyy',   
+    'yyyy/MM/dd',  
+    'dd MMM yyyy', 
+    'MMM dd, yyyy',
   ];
   
-  // Try parsing with each format
   for (const format of formats) {
     try {
       const parsed = parse(dateString.toString(), format, new Date());
@@ -96,7 +95,6 @@ const parseDate = (dateString) => {
     }
   }
   
-  // Fallback to native Date parsing
   const date = new Date(dateString);
   return !isNaN(date.getTime()) ? date : null;
 };
@@ -127,7 +125,6 @@ const fetchInvigilatorData = async () => {
       }
     });
     
-    // Additional validation to ensure we got the right exam
     const examData = response.data?.examInfo;
     if (examData) {
       const examDate = formatDateForComparison(examData.date);
@@ -144,7 +141,6 @@ const fetchInvigilatorData = async () => {
   } catch (error) {
     console.error('Error fetching invigilator data:', error);
     
-    // If 404, try to get debug information
     if (error.response?.status === 404) {
       try {
         const debugResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/attendance/debug/${facultyId}`);
@@ -169,19 +165,26 @@ const fetchUpcomingExams = async () => {
       axios.get(`${import.meta.env.VITE_API_URL}/api/exam-schedules`)
     ]);
     
-    // Filter allocations for this faculty
     const facultyAllocations = allocationsRes.data.filter(allocation => 
       allocation.facultyId === facultyId
     );
     
-    // Get upcoming exams for this faculty
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to start of day
+    today.setHours(0, 0, 0, 0); 
+    
+    // Get current exam date/time for filtering
+    const currentDate = new Date(selectedDate);
+    const currentTime = selectedTime;
     
     const upcoming = facultyAllocations
       .filter(allocation => {
         const examDate = parseDate(allocation.exam.date);
-        return examDate && examDate >= today;
+        // Exclude exams matching current date/time
+        const isCurrentExam = 
+          isSameDate(examDate, currentDate) && 
+          allocation.exam.time === currentTime;
+          
+        return examDate && examDate >= today && !isCurrentExam;
       })
       .sort((a, b) => {
         const dateA = parseDate(a.exam.date);
@@ -229,7 +232,6 @@ const fetchUpcomingExams = async () => {
       
       setFacultyStats(stats);
       
-      // Generate recent activity
       const activities = [
         { type: 'exam', message: `Supervised ${stats.completedExams} exams this semester`, time: '2 days ago', icon: Award },
         { type: 'attendance', message: `Maintained ${stats.averageAttendance}% average attendance`, time: '1 week ago', icon: TrendingUp },
@@ -240,7 +242,9 @@ const fetchUpcomingExams = async () => {
     } catch (error) {
       console.error('Error fetching faculty stats:', error);
     }
-  };
+  }; 
+
+  
 
   const handleAttendanceChange = (studentId, status) => {
     setAttendanceChanges(prev => ({
@@ -264,7 +268,7 @@ const fetchUpcomingExams = async () => {
         facultyName: facultyName
       });
       
-      // Update local state
+
       setInvigilatorData(prev => ({
         ...prev,
         students: prev.students.map(student => 
@@ -282,8 +286,6 @@ const fetchUpcomingExams = async () => {
           ).length
         }
       }));
-      
-      // Remove from pending changes
       setAttendanceChanges(prev => {
         const newChanges = { ...prev };
         delete newChanges[studentId];
@@ -298,58 +300,66 @@ const fetchUpcomingExams = async () => {
     }
   };
 
-  const handleMalpracticeReport = async () => {
-    if (!malpracticeModal.student || !malpracticeDescription.trim()) {
-      showToast('Please provide a description for the malpractice report','warning');
-      return;
-    }
-    
-    try {
-      setSaving(true);
+const handleMalpracticeReport = async () => {
+  if (!malpracticeModal.student || !malpracticeDescription.trim()) {
+    showToast('Please provide a description for the malpractice report', 'warning');
+    return;
+  }
+  
+  // Check if student is marked absent
+  const studentId = malpracticeModal.student._id;
+  const studentData = invigilatorData.students.find(s => s.student._id === studentId);
+  
+  if (studentData?.attendance?.status === 'absent') {
+    showToast('Cannot report malpractice for absent students', 'error');
+    return;
+  }
 
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/attendance/report-malpractice`, {
-        studentId: malpracticeModal.student._id,
-        examId: invigilatorData.examInfo._id,
-        roomId: invigilatorData.roomInfo._id,
-        description: malpracticeDescription,
-        facultyId: facultyId,
-        facultyName: facultyName
-      });
-      
-      // Update local state
-      setInvigilatorData(prev => ({
-        ...prev,
-        students: prev.students.map(student => 
-          student.student._id === malpracticeModal.student._id 
-            ? { 
-                ...student, 
-                attendance: { 
-                  ...student.attendance, 
-                  malpractice: { 
-                    reported: true, 
-                    description: malpracticeDescription 
-                  } 
+  try {
+    setSaving(true);
+
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/attendance/report-malpractice`, {
+      studentId: malpracticeModal.student._id,
+      examId: invigilatorData.examInfo._id,
+      roomId: invigilatorData.roomInfo._id,
+      description: malpracticeDescription,
+      facultyId: facultyId,
+      facultyName: facultyName
+    });
+
+    setInvigilatorData(prev => ({
+      ...prev,
+      students: prev.students.map(student => 
+        student.student._id === malpracticeModal.student._id 
+          ? { 
+              ...student, 
+              attendance: { 
+                ...student.attendance, 
+                malpractice: { 
+                  reported: true, 
+                  description: malpracticeDescription 
                 } 
-              }
-            : student
-        ),
-        summary: {
-          ...prev.summary,
-          malpracticeCount: prev.summary.malpracticeCount + 1
-        }
-      }));
-      
-      setMalpracticeModal({ show: false, student: null });
-      setMalpracticeDescription('');
-      showToast('Malpractice reported successfully','success');
-      
-    } catch (error) {
-      console.error('Error reporting malpractice:', error);
-      showToast('Error reporting malpractice: ' + (error.response?.data?.message || error.message),'error');
-    } finally {
-      setSaving(false);
-    }
-  };
+              } 
+            }
+          : student
+      ),
+      summary: {
+        ...prev.summary,
+        malpracticeCount: prev.summary.malpracticeCount + 1
+      }
+    }));
+    
+    setMalpracticeModal({ show: false, student: null });
+    setMalpracticeDescription('');
+    showToast('Malpractice reported successfully', 'success');
+    
+  } catch (error) {
+    console.error('Error reporting malpractice:', error);
+    showToast('Error reporting malpractice: ' + (error.response?.data?.message || error.message), 'error');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const downloadAttendanceReport = () => {
     if (!invigilatorData || !invigilatorData.students.length) {
@@ -389,24 +399,19 @@ const fetchUpcomingExams = async () => {
   const renderSeatingArrangement = () => {
     if (!invigilatorData || !invigilatorData.students.length) return null;
     
-    // Sort students by seat number in numerical order (A1, A2, A3... B1, B2...)
     const sortedStudents = [...invigilatorData.students].sort((a, b) => {
-        // Extract letter and number parts
         const letterA = a.seatNumber.match(/[A-Za-z]+/)[0];
         const numA = parseInt(a.seatNumber.match(/\d+/)[0]);
         const letterB = b.seatNumber.match(/[A-Za-z]+/)[0];
         const numB = parseInt(b.seatNumber.match(/\d+/)[0]);
         
-        // First sort by letter (A comes before B)
         if (letterA !== letterB) {
             return letterA.localeCompare(letterB);
         }
-        // Then sort by number numerically
         return numA - numB;
     });
     
-    // Create a grid layout for seating arrangement
-    const maxSeatsPerRow = 6; // 3 benches per row (A and B sides)
+    const maxSeatsPerRow = 6; 
     const rows = [];
     
     for (let i = 0; i < sortedStudents.length; i += maxSeatsPerRow) {
@@ -443,12 +448,10 @@ const fetchUpcomingExams = async () => {
                       : 'border-green-300 bg-gradient-to-br from-green-50 to-emerald-50'
                   } ${hasChanges ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}
                 >
-                  {/* Seat Number */}
                   <div className="text-sm font-bold text-gray-700 mb-2 text-center bg-white rounded-md py-1">
                     {studentData.seatNumber}
                   </div>
                   
-                  {/* Student Info */}
                   <div className="text-sm font-semibold text-gray-800 mb-1 text-center">
                     {student.regNo}
                   </div>
@@ -456,9 +459,7 @@ const fetchUpcomingExams = async () => {
                     {student.name}
                   </div>
                   
-                  {/* Status Indicators */}
                   <div className="flex items-center justify-center space-x-2">
-                    {/* Attendance Checkbox */}
                     <label className="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -483,21 +484,28 @@ const fetchUpcomingExams = async () => {
                       </div>
                     </label>
                     
-                    {/* Malpractice Button */}
                     <button
                       onClick={() => setMalpracticeModal({ show: true, student })}
+                      disabled={currentStatus === 'absent'}
                       className={`p-1.5 rounded-full transition-all duration-200 ${
                         hasMalpractice 
                           ? 'bg-red-500 text-white shadow-lg' 
+                          : currentStatus === 'absent'
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-gray-200 text-gray-600 hover:bg-orange-200 hover:shadow-md'
                       }`}
-                      title={hasMalpractice ? 'Malpractice Reported' : 'Report Malpractice'}
+                      title={
+                        currentStatus === 'absent' 
+                          ? 'Cannot report malpractice for absent students' 
+                          : hasMalpractice 
+                            ? 'Malpractice Reported' 
+                            : 'Report Malpractice'
+                      }
                     >
                       <AlertTriangle className="h-3 w-3" />
                     </button>
                   </div>
                   
-                  {/* Malpractice Indicator */}
                   {hasMalpractice && (
                     <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg">
                       <Shield className="h-3 w-3" />
@@ -583,7 +591,6 @@ const fetchUpcomingExams = async () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 lg:p-6">
-      {/* Enhanced Header */}
       <div className="mb-8">
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
@@ -630,7 +637,6 @@ const fetchUpcomingExams = async () => {
             </div>
           </div>
           
-          {/* Date and Time Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
@@ -656,7 +662,6 @@ const fetchUpcomingExams = async () => {
         </div>
       </div>
 
-      {/* Faculty Performance Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between">
@@ -703,9 +708,7 @@ const fetchUpcomingExams = async () => {
         </div>
       </div>
 
-      {/* Upcoming Exams and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Upcoming Exams */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center">
@@ -754,7 +757,6 @@ const fetchUpcomingExams = async () => {
           )}
         </div>
 
-        {/* Recent Activity */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center">
@@ -782,7 +784,6 @@ const fetchUpcomingExams = async () => {
 
       {invigilatorData && (
         <>
-          {/* Enhanced Room and Exam Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
@@ -837,7 +838,6 @@ const fetchUpcomingExams = async () => {
             </div>
           </div>
 
-          {/* Enhanced Exam Details */}
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
               <BookOpen className="h-6 w-6 mr-2 text-indigo-600" />
@@ -883,7 +883,6 @@ const fetchUpcomingExams = async () => {
             </div>
           </div>
 
-          {/* Enhanced Seating Arrangement */}
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
               <h2 className="text-2xl font-bold text-gray-800 flex items-center mb-4 lg:mb-0">
@@ -911,7 +910,6 @@ const fetchUpcomingExams = async () => {
         </>
       )}
 
-      {/* Enhanced Malpractice Modal */}
       {malpracticeModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">

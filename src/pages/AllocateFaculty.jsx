@@ -128,7 +128,6 @@ const AllocateFaculty = () => {
     }
   };
 
-  // Upload Excel and parse faculty data
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -142,8 +141,7 @@ const AllocateFaculty = () => {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json(worksheet);
-        
-        // Normalize designation
+
         const normalizedData = data.map(faculty => ({
           ...faculty,
           designation: faculty.designation ? faculty.designation.toLowerCase() : 'faculty'
@@ -164,7 +162,6 @@ const AllocateFaculty = () => {
     reader.readAsBinaryString(file);
   };
 
-  // Smart allocate faculty and lab technicians to rooms based on students count
  const smartAllocateFaculty = async () => {
   if (facultyList.length === 0) {
     toast.error('Please upload faculty list first');
@@ -242,7 +239,6 @@ const AllocateFaculty = () => {
         requiredLabTech = 2;
       }
 
-      // Allocate faculty
       for (let i = 0; i < requiredFaculty; i++) {
         const availableFaculty = shuffledFaculty.filter(f => !usedFacultyIds.has(f.facultyId));
         if (availableFaculty.length > 0) {
@@ -268,7 +264,6 @@ const AllocateFaculty = () => {
         }
       }
 
-      // Allocate lab technicians
       for (let i = 0; i < requiredLabTech; i++) {
         const availableLabTech = shuffledLabTech.filter(f => !usedFacultyIds.has(f.facultyId));
         if (availableLabTech.length > 0) {
@@ -322,7 +317,6 @@ const AllocateFaculty = () => {
   }
 };
 
-  // Manual add/edit submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -372,7 +366,6 @@ const AllocateFaculty = () => {
     }
   };
 
-  // Edit existing allocation
   const handleEdit = (allocation) => {
     setEditingAllocation(allocation);
     setFormData({
@@ -402,7 +395,6 @@ const AllocateFaculty = () => {
     }
   };
 
-  // Notify allocated faculties API call
   const notifyFaculties = async () => {
     if (!selectedDate || !selectedTime) {
       toast.error('Please select exam date and time first');
@@ -550,7 +542,6 @@ const AllocateFaculty = () => {
     return 'bg-green-100 text-green-800';
   };
 
-  // Filter allocations for display based on selected date and time
   const displayAllocations = facultyAllocations.filter(allocation => {
     if (!selectedDate || !selectedTime) return true;
     
@@ -559,7 +550,6 @@ const AllocateFaculty = () => {
     return allocationDate === selectedDateObj && allocation.exam.time === selectedTime;
   });
 
-  // Get faculty pools info
   const facultyPool = facultyList.filter(f => {
     const designation = f.designation ? f.designation.toLowerCase() : '';
     return designation.includes('faculty') || designation === 'faculty';
@@ -596,8 +586,7 @@ const AllocateFaculty = () => {
           },
         }}
       />
-      
-      {/* Header */}
+
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Faculty Allocation System</h1>
@@ -668,7 +657,6 @@ const AllocateFaculty = () => {
         </div>
       </div>
 
-      {/* Faculty Pool Information */}
       {facultyList.length > 0 && (
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -709,7 +697,6 @@ const AllocateFaculty = () => {
         </div>
       )}
 
-      {/* Date and Time Selection */}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
           <Calendar className="h-6 w-6 mr-2 text-indigo-600" />
@@ -794,7 +781,6 @@ const AllocateFaculty = () => {
         )}
       </div>
 
-      {/* Available Rooms with Capacity Info */}
       {availableRooms.length > 0 && (
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -851,7 +837,6 @@ const AllocateFaculty = () => {
         </div>
       )}
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-2xl p-6 shadow-lg">
           <div className="flex items-center justify-between">
@@ -894,7 +879,6 @@ const AllocateFaculty = () => {
         </div>
       </div>
 
-      {/* Faculty Allocations Table */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">Faculty Allocations</h2>
@@ -1008,7 +992,6 @@ const AllocateFaculty = () => {
         </div>
       </div>
 
-      {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
@@ -1056,7 +1039,6 @@ const AllocateFaculty = () => {
         </div>
       )}
 
-      {/* Manual Allocation Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-2xl">

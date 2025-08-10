@@ -14,7 +14,6 @@ const SplashPage = () => {
         transition={{ duration: 1.2 }}
         className="z-10 text-center px-4 max-w-3xl"
       >
-        {/* Logo Animation */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7, y: -20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -34,7 +33,6 @@ const SplashPage = () => {
           />
         </motion.div>
 
-        {/* Main Heading */}
         <motion.h1 className="text-2xl md:text-4xl font-light tracking-wide mb-4 leading-snug  text-indigo-200">
           {["Exam", "Seating", "Management"].map((word, wi) => (
             <motion.span
@@ -62,7 +60,6 @@ const SplashPage = () => {
           ))}
         </motion.h1>
 
-        {/* Subheading */}
         <motion.p
           className="text-sm md:text-base text-indigo-300 max-w-xl mx-auto mt-3 font-light"
           initial={{ opacity: 0, y: 10 }}
@@ -72,7 +69,6 @@ const SplashPage = () => {
           Organizing examinations with ease, accuracy, and elegance.
         </motion.p>
 
-        {/* Animated Loading Bar */}
         <motion.div
           className="mt-10 h-1.5 bg-white/10 rounded-full overflow-hidden max-w-sm mx-auto"
           initial={{ opacity: 0 }}

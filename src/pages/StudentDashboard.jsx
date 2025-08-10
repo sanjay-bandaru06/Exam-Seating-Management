@@ -44,7 +44,6 @@ const StudentDashboard = ({ logout }) => {
 
   const { showToast } = useToast();
   
-  // Get auth session from sessionStorage
   const authSession = JSON.parse(sessionStorage.getItem('authSession') || '{}');
   const { userId: studentRegNo, name: studentName } = authSession;
 
@@ -89,7 +88,6 @@ const StudentDashboard = ({ logout }) => {
       setLoading(true);
       setError(null);
 
-      // Fetch all necessary data in parallel
       const [studentsRes, allocationsRes, examsRes, facultyAllocationsRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/students`),
         axios.get(`${import.meta.env.VITE_API_URL}/api/allocations`),
@@ -97,7 +95,6 @@ const StudentDashboard = ({ logout }) => {
         axios.get(`${import.meta.env.VITE_API_URL}/api/faculty-allocations`)
       ]);
 
-      // Find the current student
       const student = studentsRes.data.find(s => s.regNo === studentRegNo);
       if (!student) {
         throw new Error('Student not found');
@@ -105,11 +102,9 @@ const StudentDashboard = ({ logout }) => {
 
       setStudentData(student);
 
-      // Find student's seat allocations
       const studentAllocations = allocationsRes.data
         .filter(allocation => allocation && allocation.student && allocation.student.regNo === studentRegNo)
         .map(allocation => {
-          // Find the full exam details
           const exam = examsRes.data.find(e => e._id === allocation.exam._id);
           return {
             ...allocation,
@@ -117,18 +112,15 @@ const StudentDashboard = ({ logout }) => {
           };
         });
 
-      // Get today's date for comparison
       const today = new Date();
       const todayStr = formatDateForComparison(today);
 
-      // Find today's exam
       const todayExamAllocation = studentAllocations.find(allocation => {
         const examDate = formatDateForComparison(allocation.exam.date);
         return examDate === todayStr;
       });
 
       if (todayExamAllocation) {
-        // Find invigilator for today's exam
         const invigilator = facultyAllocationsRes.data.find(fa => 
           fa.exam && fa.room && 
           fa.exam._id === todayExamAllocation.exam._id && 
@@ -141,7 +133,6 @@ const StudentDashboard = ({ logout }) => {
         });
       }
 
-      // Find upcoming exams (excluding today)
       const upcoming = studentAllocations
         .filter(allocation => {
           const examDate = new Date(allocation.exam.date);
@@ -150,7 +141,6 @@ const StudentDashboard = ({ logout }) => {
         .sort((a, b) => new Date(a.exam.date) - new Date(b.exam.date))
         .slice(0, 5);
 
-      // Add invigilator info to upcoming exams
       const upcomingWithInvigilators = upcoming.map(allocation => {
         const invigilator = facultyAllocationsRes.data.find(fa => 
           fa.exam && fa.room &&
@@ -180,11 +170,10 @@ const StudentDashboard = ({ logout }) => {
     const now = new Date();
     const exam = new Date(examDate);
     
-    // Set exam time
     if (examTime === 'FN') {
-      exam.setHours(9, 0, 0, 0); // 9:00 AM
+      exam.setHours(9, 0, 0, 0);
     } else {
-      exam.setHours(14, 0, 0, 0); // 2:00 PM
+      exam.setHours(14, 0, 0, 0);
     }
 
     const timeDiff = exam - now;
@@ -225,7 +214,6 @@ const StudentDashboard = ({ logout }) => {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
@@ -246,7 +234,6 @@ const StudentDashboard = ({ logout }) => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
@@ -278,7 +265,6 @@ const StudentDashboard = ({ logout }) => {
     );
   }
 
-  // No student data state
   if (!studentData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
@@ -348,7 +334,6 @@ const StudentDashboard = ({ logout }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 lg:p-6">
-      {/* Header Section */}
       <div className="mb-8">
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 border border-white/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full -mr-20 -mt-20 opacity-60"></div>
@@ -397,7 +382,6 @@ const StudentDashboard = ({ logout }) => {
               </div>
             </div>
 
-            {/* Motivational Quote */}
             <div className="bg-gradient-to-r from-indigo-100/80 to-purple-100/80 rounded-xl p-4 border border-indigo-200/50 backdrop-blur-sm">
               <div className="flex items-center space-x-3">
                 <div className="bg-gradient-to-br from-indigo-500 to-purple-500 p-2 rounded-lg shadow-md">
@@ -410,7 +394,6 @@ const StudentDashboard = ({ logout }) => {
         </div>
       </div>
 
-      {/* Today's Exam Section */}
       {todayExam ? (
         <div className="mb-8">
           <div className="bg-white rounded-3xl shadow-lg p-6 border border-gray-100 relative overflow-hidden">
@@ -429,7 +412,6 @@ const StudentDashboard = ({ logout }) => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Exam Details Card */}
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
                   <div className="flex items-center space-x-2 mb-3">
                     <BookOpen className="h-5 w-5 text-blue-600" />
@@ -463,7 +445,6 @@ const StudentDashboard = ({ logout }) => {
                   </div>
                 </div>
 
-                {/* Location & Invigilator Card */}
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
                   <div className="flex items-center space-x-2 mb-3">
                     <MapPin className="h-5 w-5 text-blue-600" />
@@ -496,7 +477,6 @@ const StudentDashboard = ({ logout }) => {
                 </div>
               </div>
 
-              {/* Exam Tips */}
               <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-100">
                 <div className="flex items-start space-x-3">
                   <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -530,7 +510,6 @@ const StudentDashboard = ({ logout }) => {
         </div>
       )}
 
-      {/* Upcoming Exams */}
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-6 border border-white/20 mb-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center">
@@ -637,7 +616,6 @@ const StudentDashboard = ({ logout }) => {
         )}
       </div>
 
-      {/* ChatBot Assistant */}
       <div className="fixed bottom-6 right-6 z-50">
         {showChatBot ? (
           <div className="relative">
@@ -674,7 +652,6 @@ const StudentDashboard = ({ logout }) => {
         )}
       </div>
 
-      {/* Study Tips Section */}
       <div className="mt-8 bg-gradient-to-r from-indigo-500/90 to-purple-600/90 rounded-3xl shadow-xl p-6 text-white backdrop-blur-sm border border-white/20">
         <div className="flex items-center space-x-3 mb-4">
           <div className="bg-white/20 p-3 rounded-xl shadow-inner backdrop-blur-sm">
